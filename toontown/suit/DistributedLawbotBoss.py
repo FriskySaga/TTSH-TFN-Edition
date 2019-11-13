@@ -1799,14 +1799,6 @@ class DistributedLawbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         if self.bonusTimer:
             self.bonusTimer.hide()
 
-    def showBonusCooldownTimer(self):
-        if not self.bonusTimer:
-            self.bonusTimer = ToontownTimer.ToontownTimer()
-            self.bonusTimer.posInTopRightCorner()
-        self.bonusTimer.show()
-        self.bonusTimer.setFontColor(Vec4(0, 0, 1, 1))
-        self.bonusTimer.countdown(ToontownGlobals.LawbotBossBonusWaitTime - ToontownGlobals.LawbotBossBonusDuration, self.hideBonusTimer)  
-
     def enteredBonusState(self):
         self.witnessToon.clearChat()
         text = TTLocalizer.WitnessToonBonus % (ToontownGlobals.LawbotBossBonusWeightMultiplier, ToontownGlobals.LawbotBossBonusDuration)
@@ -1816,7 +1808,7 @@ class DistributedLawbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
             self.bonusTimer = ToontownTimer.ToontownTimer()
             self.bonusTimer.posInTopRightCorner()
         self.bonusTimer.show()
-        self.bonusTimer.countdown(ToontownGlobals.LawbotBossBonusDuration, self.showBonusCooldownTimer)
+        self.bonusTimer.countdown(ToontownGlobals.LawbotBossBonusDuration, self.hideBonusTimer)
 
     def setAttackCode(self, attackCode, avId = 0):
         DistributedBossCog.DistributedBossCog.setAttackCode(self, attackCode, avId)
