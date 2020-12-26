@@ -141,6 +141,17 @@ class ToonBase(OTPBase.OTPBase):
         self.oldY = max(1, base.win.getYSize())
         self.aspectRatio = float(self.oldX) / self.oldY
         self.aspect2d.setAntialias(AntialiasAttrib.MMultisample)
+
+        self.wantCustomKeybinds = self.settings.getBool('game', 'customKeybinds', False)
+
+        self.MOVE_UP = 'arrow_up'   
+        self.MOVE_DOWN = 'arrow_down'
+        self.MOVE_LEFT = 'arrow_left'      
+        self.MOVE_RIGHT = 'arrow_right'
+        self.JUMP = 'control'
+        self.ACTION_BUTTON = 'delete'
+        self.SCREENSHOT_KEY = 'f9'
+        self.reloadControls()
         return
 
     def setSprinting(self):
@@ -447,6 +458,8 @@ class ToonBase(OTPBase.OTPBase):
 
     def loadFromSettings(self):
         if not config.GetInt('ignore-user-options', 0):
+            wantCustomKeybinds = self.settings.getBool('game', 'customKeybinds', False)
+            keymap = self.settings.getOption('game', 'keymap', {})
             fullscreen = self.settings.getBool('game', 'fullscreen', False)
             music = self.settings.getBool('game', 'music', True)
             sfx = self.settings.getBool('game', 'sfx', True)
@@ -468,4 +481,30 @@ class ToonBase(OTPBase.OTPBase):
             loadPrcFileData('toonBase Settings Music Volume', 'audio-master-music-volume %s' % musicVol)
             loadPrcFileData('toonBase Settings Sfx Volume', 'audio-master-sfx-volume %s' % sfxVol)
             loadPrcFileData('toonBase Settings Toon Chat Sounds', 'toon-chat-sounds %s' % toonChatSounds)
+            loadPrcFileData('toonBase Settings Custom Keybinds', 'customKeybinds %s' % wantCustomKeybinds)
+            loadPrcFileData('toonBase Settings Keymap', 'keymap %s' % keymap)
             self.settings.loadFromSettings()
+
+    def reloadControls(self):
+        self.ignore(self.SCREENSHOT_KEY)
+        keymap = self.settings.getOption("game", "keymap", {})
+        self.CHAT_HOTKEY = keymap.get("CHAT_HOTKEY", "t")
+        if self.wantCustomKeybinds:
+            self.MOVE_UP = keymap.get("MOVE_UP", self.MOVE_UP)
+            self.MOVE_DOWN = keymap.get("MOVE_DOWN", self.MOVE_DOWN)
+            self.MOVE_LEFT = keymap.get("MOVE_LEFT", self.MOVE_LEFT)
+            self.MOVE_RIGHT = keymap.get("MOVE_RIGHT", self.MOVE_RIGHT)
+            self.JUMP = keymap.get("JUMP", self.JUMP)
+            self.ACTION_BUTTON = keymap.get("ACTION_BUTTON", self.ACTION_BUTTON)
+            ToontownGlobals.OptionsPageHotkey = keymap.get(
+                "OPTIONS-PAGE", ToontownGlobals.OptionsPageHotkey
+            )
+        else:
+            self.MOVE_UP = "arrow_up"
+            self.MOVE_DOWN = "arrow_down"
+            self.MOVE_LEFT = "arrow_left"
+            self.MOVE_RIGHT = "arrow_right"
+            self.JUMP = "control"
+            self.ACTION_BUTTON = "delete"
+
+        self.accept(self.SCREENSHOT_KEY, self.takeScreenShot)

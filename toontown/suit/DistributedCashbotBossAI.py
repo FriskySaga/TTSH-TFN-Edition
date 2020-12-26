@@ -40,7 +40,14 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.heldObject = None
         self.waitingForHelmet = 0
         self.avatarHelmets = {}
+        self.knockoutDamage = ToontownGlobals.CashbotBossKnockoutDamage
         self.bossMaxDamage = ToontownGlobals.CashbotBossMaxDamage
+        self.wantSafeRushPractice = False
+        self.wantMovementModifications = True
+        self.wantOpeningModifications = True
+        self.want4ManPractice = False
+        self.wantCustomCraneSpawns = False
+        self.customSpawnPositions = {}
         return
 
     def generate(self):
@@ -251,8 +258,24 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             return self.maxGoons + 8
 
     def makeGoon(self, side = None):
+        self.goonMovementTime = globalClock.getFrameTime()
+        if len(self.involvedToons) > 1:
+            self.wantMovementModification = False
+        else:
+            self.wantMovementModification = True
         if side == None:
-            side = random.choice(['EmergeA', 'EmergeB'])
+            if not self.wantOpeningModifications:
+                side = random.choice(['EmergeA', 'EmergeB'])
+            else:
+                for t in self.involvedToons:
+                    avId = t
+                toon = self.air.doId2do.get(avId)
+                pos = toon.getPos()[1]
+                if pos < -315:
+                    side = 'EmergeB'
+                else:
+                    side = 'EmergeA'
+				
         goon = self.__chooseOldGoon()
         if goon == None:
             if len(self.goons) >= self.getMaxGoons():
@@ -265,7 +288,10 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             goon.b_setupGoon(velocity=8, hFov=90, attackRadius=20, strength=30, scale=1.8)
         else:
             goon.STUN_TIME = self.progressValue(30, 8)
-            goon.b_setupGoon(velocity=self.progressRandomValue(3, 7), hFov=self.progressRandomValue(70, 80), attackRadius=self.progressRandomValue(6, 15), strength=int(self.progressRandomValue(5, 25)), scale=self.progressRandomValue(0.5, 1.5))
+            if self.want4ManPractice and (self.bossDamage > 20 and self.bossDamage < 50):
+               goon.b_setupGoon(velocity=self.progressRandomValue(3, 7), hFov=self.progressRandomValue(70, 80), attackRadius=self.progressRandomValue(6, 15), strength=int(self.progressRandomValue(5, 25)), scale=0.61)
+            else:
+               goon.b_setupGoon(velocity=self.progressRandomValue(3, 7), hFov=self.progressRandomValue(70, 80), attackRadius=self.progressRandomValue(6, 15), strength=int(self.progressRandomValue(5, 25)), scale=self.progressRandomValue(0.5, 1.5, noRandom=True))
         goon.request(side)
         return
 
@@ -353,12 +379,22 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         if self.state != 'BattleThree':
             return
         self.b_setBossDamage(self.bossDamage + damage)
+        if self.wantSafeRushPractice:
+            self.knockoutDamage = 2
+        else:
+            self.knockoutDamage = ToontownGlobals.CashbotBossKnockoutDamage
         if self.bossDamage >= self.bossMaxDamage:
             self.b_setState('Victory')
         elif self.attackCode != ToontownGlobals.BossCogDizzy:
-            if damage >= ToontownGlobals.CashbotBossKnockoutDamage:
-                self.b_setAttackCode(ToontownGlobals.BossCogDizzy)
-                self.stopHelmets()
+            if damage >= self.knockoutDamage:
+
+                #Whisper out the time from the start of CFO
+                self.stunTime = globalClock.getFrameTime()
+                for doId, do in simbase.air.doId2do.items():
+                    if str(doId)[0] != str(simbase.air.districtId)[0]:
+                        do.d_setSystemMessage(0, "CFO Stunned From Start: {0:.3f}s".format(self.stunTime - self.battleThreeTimeStarted))
+                        self.b_setAttackCode(ToontownGlobals.BossCogDizzy)
+                        self.stopHelmets()
             else:
                 self.b_setAttackCode(ToontownGlobals.BossCogNoAttack)
                 self.stopHelmets()
@@ -374,6 +410,9 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
 
     def d_setBossDamage(self, bossDamage):
         self.sendUpdate('setBossDamage', [bossDamage])
+
+    def d_setCraneSpawn(self, want, spawn, toonId):
+        self.sendUpdate('setCraneSpawn', [want, spawn, toonId])
 
     def d_setRewardId(self, rewardId):
         self.sendUpdate('setRewardId', [rewardId])
@@ -417,6 +456,8 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.ignoreBarrier(self.barrier)
 
     def enterBattleThree(self):
+        if self.attackCode == ToontownGlobals.BossCogDizzy or self.attackCode == ToontownGlobals.BossCogDizzyNow:
+            self.b_setAttackCode(ToontownGlobals.BossCogNoAttack)
         self.setPosHpr(*ToontownGlobals.CashbotBossBattleThreePosHpr)
         self.__makeBattleThreeObjects()
         self.__resetBattleThreeObjects()
@@ -433,6 +474,7 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         taskName = self.uniqueName('NextGoon')
         taskMgr.remove(taskName)
         taskMgr.doMethodLater(2, self.__doInitialGoons, taskName)
+        self.battleThreeTimeStarted = globalClock.getFrameTime()
 
     def __doInitialGoons(self, task):
         self.makeGoon(side='EmergeA')
@@ -452,6 +494,11 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         return
 
     def enterVictory(self):
+        #Whisper out the time from the start of CFO until end of CFO
+        self.craneTime = globalClock.getFrameTime()
+        for doId, do in simbase.air.doId2do.items():
+            if str(doId)[0] != str(simbase.air.districtId)[0]:
+                do.d_setSystemMessage(0, "Crane Round Ended In {0:.5f}s".format(self.craneTime - self.battleThreeTimeStarted))
         self.resetBattles()
         self.suitsKilled.append({'type': None,
          'level': None,

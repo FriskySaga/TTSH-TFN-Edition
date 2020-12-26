@@ -17,7 +17,7 @@ class BossHealthBar:
 
     def __init__(self):
         self.bossBarFrameBg = loader.loadTexture('phase_9/maps/HealthBarBosses.png')
-        self.bossBarFrame = DirectFrame(pos=(0, 0, self.bossBarStartPosZ), scale=1.8, sortOrder=20)
+        self.bossBarFrame = DirectFrame(pos=(1, 0, self.bossBarStartPosZ), scale=1.8*0.8, sortOrder=20)
         self.gui = loader.loadModel('phase_9/models/gui/HealthBarBosses')
         self.gui.setTexture(self.bossBarFrameBg)
         self.gui.setTransparency(1)
@@ -45,7 +45,7 @@ class BossHealthBar:
         self.__checkUpdateColor(hp, maxhp)
         self.bossBar.show()
         self.gui.show()
-        Sequence(self.bossBarFrame.posInterval(1.0, Point3(0, 0, self.bossBarEndPosZ), blendType='easeOut')).start()
+        Sequence(self.bossBarFrame.posInterval(1.0, Point3(1, 0, self.bossBarEndPosZ), blendType='easeOut')).start()
 
     def update(self, hp, maxHp):
         if self.isUpdating:

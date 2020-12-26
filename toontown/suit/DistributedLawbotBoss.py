@@ -851,6 +851,12 @@ class DistributedLawbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         return self.juryBox
 
     def startJuryBoxMoving(self):
+        if self.juryBoxIval:
+            self.juryBoxIval.finish()
+            self.juryBoxIval = None
+        self.juryBox.setPos(-30, 0, -12.645)
+        self.reflectedJuryBox.setPos(-30, 0, 0)
+
         curPos = self.juryBox.getPos()
         endingAbsPos = Point3(curPos[0] + ToontownGlobals.LawbotBossJuryBoxRelativeEndPos[0], curPos[1] + ToontownGlobals.LawbotBossJuryBoxRelativeEndPos[1], curPos[2] + ToontownGlobals.LawbotBossJuryBoxRelativeEndPos[2])
         curReflectedPos = self.reflectedJuryBox.getPos()

@@ -33,7 +33,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
 
     def __init__(self, cr):
         DistributedBossCog.DistributedBossCog.__init__(self, cr)
-        FSM.FSM.__init__(self, 'DistributedSellbotBoss')
+        FSM.FSM.__init__(self, 'DistributedCashbotBoss')
         self.resistanceToon = None
         self.resistanceToonOnstage = 0
         self.cranes = {}
@@ -42,6 +42,10 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         self.bossMaxDamage = ToontownGlobals.CashbotBossMaxDamage
         self.elevatorType = ElevatorConstants.ELEVATOR_CFO
         base.boss = self
+        self.wantCustomCraneSpawns = False
+        self.customSpawnPositions = {}
+        self.string_1 = "CaptainSaltyGenius"
+        self.string_2 = "AlyaziaDumb"
         return
 
     def announceGenerate(self):
@@ -370,7 +374,23 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
                                     Func(self.setChatAbsolute, attackToons, CFSpeech),
                                     Wait(2),
                                     Func(self.clearChat))
+        
+        print("====================")
+
+        print("Toons-A Array Address: %s" % hex(id(self.toonsA)))
+        for toon in self.toonsA:
+            print("\t%s Address: %s" % (toon,(hex(id(toon)))))
+        print("Toons-B Array Address: %s" % hex(id(self.toonsB)))
+        for toon in self.toonsB:
+            print("\t%s Address: %s" % (toon,(hex(id(toon)))))
+        print("====================")
+		
+        print("%s Address: %s" % (self.string_1,(hex(id(self.string_1)))))
+        print("%s Address: %s" % (self.string_2,(hex(id(self.string_2)))))
+		
         return Sequence(Func(camera.reparentTo, render), track)
+
+        
 
     def __makeGoonMovieForBattleThree(self):
         goonPosHprs = [[Point3(111, -287, 0),
@@ -473,13 +493,27 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
 
     def moveToonsToBattleThreePos(self, toons):
         track = Parallel()
-        for i in xrange(len(toons)):
-            toon = base.cr.doId2do.get(toons[i])
-            if toon:
-                posHpr = ToontownGlobals.CashbotToonsBattleThreeStartPosHpr[i]
-                pos = Point3(*posHpr[0:3])
-                hpr = VBase3(*posHpr[3:6])
-                track.append(toon.posHprInterval(0.2, pos, hpr))
+        if self.wantCustomCraneSpawns:
+            for i in xrange(len(toons)):
+                toonId = toons[i]
+                toon = base.cr.doId2do.get(toons[i])
+                if toonId:
+                    try:
+                        toonWantedPosition = self.customSpawnPositions[toonId]
+                    except:
+                        toonWantedPosition = random.randrange(0, 7)
+                    posHpr = ToontownGlobals.CashbotToonsBattleThreeStartPosHpr[toonWantedPosition]
+                    pos = Point3(*posHpr[0:3])
+                    hpr = VBase3(*posHpr[3:6])
+                    track.append(toon.posHprInterval(0.2, pos, hpr))
+        else:
+            for i in xrange(len(toons)):
+                toon = base.cr.doId2do.get(toons[i])
+                if toon:
+                    posHpr = ToontownGlobals.CashbotToonsBattleThreeStartPosHpr[i]
+                    pos = Point3(*posHpr[0:3])
+                    hpr = VBase3(*posHpr[3:6])
+                    track.append(toon.posHprInterval(0.2, pos, hpr))
 
         return track
 
@@ -579,6 +613,13 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         self.bossDamage = bossDamage
         self.updateHealthBar()
         self.bossHealthBar.update(self.bossMaxDamage - bossDamage, self.bossMaxDamage)
+
+    def setCraneSpawn(self, want, spawn, toonId):
+        print(want)
+        print(spawn)
+        print(toonId)
+        self.wantCustomCraneSpawns = want
+        self.customSpawnPositions[toonId] = spawn
 
     def setRewardId(self, rewardId):
         self.rewardId = rewardId

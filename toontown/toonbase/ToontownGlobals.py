@@ -97,7 +97,7 @@ FM_RecoveredItem = 4
 SPDonaldsBoat = 3
 SPMinniesPiano = 4
 CEVirtual = 14
-MaxHpLimit = 137
+MaxHpLimit = 1337
 MaxCarryLimit = 80
 MaxQuestCarryLimit = 4
 CogImmuneColor = Vec4(1, 1, 1, 1)
@@ -644,6 +644,18 @@ BossCogDamageLevels = {BossCogElectricFence: 1,
  BossCogGolfAreaAttack: 15,
  BossCogGearDirectedAttack: 15,
  BossCogOvertimeAttack: 10}
+
+BossCogDizzyStates = [
+ BossCogDizzy,
+ BossCogDizzyNow,
+]
+NonBossCogAttacks = [BossCogGoonZap,
+ BossCogGavelStomp,
+ BossCogGavelHandle,
+ BossCogLawyerAttack,
+ BossCogElectricFence,
+ ]
+
 BossCogBattleAPosHpr = (0,
  -25,
  0,
@@ -709,51 +721,51 @@ CashbotBossBattleThreePosHpr = (120,
  0,
  0)
 CashbotToonsBattleThreeStartPosHpr = [(105,
-  -285,
+  - 285,
   0,
   208,
   0,
   0),
  (136,
-  -342,
+  - 342,
   0,
   398,
   0,
   0),
  (105,
-  -342,
+  - 342,
   0,
   333,
   0,
   0),
  (135,
-  -292,
+  - 292,
   0,
   146,
   0,
   0),
  (93,
-  -303,
+  - 303,
   0,
   242,
   0,
   0),
  (144,
-  -327,
+  - 327,
   0,
   64,
   0,
   0),
  (145,
-  -302,
+  - 302,
   0,
   117,
   0,
   0),
  (93,
-  -327,
+  - 327,
   0,
-  -65,
+  - 65,
   0,
   0)]
 CashbotBossSafePosHprs = [(120,
@@ -978,6 +990,7 @@ WACKY_WINTER_DECORATIONS = 121
 WACKY_WINTER_CAROLING = 122
 TOT_REWARD_JELLYBEAN_AMOUNT = 100
 TOT_REWARD_END_OFFSET_AMOUNT = 0
+
 LawbotBossMaxDamage = 2700
 LawbotBossWinningTilt = 40
 LawbotBossInitialDamage = 1350
@@ -1384,7 +1397,7 @@ LawbotBossChairRow1PosB = (59.3, 48, 14.05)
 LawbotBossChairRow1PosA = (59.3, -18.2, 14.05)
 LawbotBossChairRow2PosB = (75.1, 48, 28.2)
 LawbotBossChairRow2PosA = (75.1, -18.2, 28.2)
-LawbotBossCannonBallMax = 12
+LawbotBossCannonBallMax = 24
 LawbotBossJuryBoxStartPos = (94, -8, 5)
 LawbotBossJuryBoxRelativeEndPos = (30, 0, 12.645)
 LawbotBossJuryBoxMoveTime = 70
@@ -1400,11 +1413,11 @@ LawbotBossWitnessEpiloguePosHpr = (-3,
  0,
  0)
 LawbotBossChanceForTaunt = 25
-LawbotBossBonusWaitTime = 60
+LawbotBossBonusWaitTime = 0
 LawbotBossBonusDuration = 20
 LawbotBossBonusToonup = 10
 LawbotBossBonusWeightMultiplier = 2
-LawbotBossChanceToDoAreaAttack = 11
+LawbotBossChanceToDoAreaAttack = 0
 LOW_POP_JP = 0
 MID_POP_JP = 100
 HIGH_POP_JP = 200

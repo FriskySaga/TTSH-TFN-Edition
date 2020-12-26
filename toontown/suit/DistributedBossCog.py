@@ -664,6 +664,10 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
     def zapLocalToon(self, attackCode, origin = None):
         if self.localToonIsSafe or localAvatar.ghostMode or localAvatar.isStunned:
             return
+        if (attackCode in ToontownGlobals.NonBossCogAttacks):
+            pass
+        elif (self.attackCode in ToontownGlobals.BossCogDizzyStates):
+            return
         messenger.send('interrupt-pie')
         place = self.cr.playGame.getPlace()
         currentState = None
